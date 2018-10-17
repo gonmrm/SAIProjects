@@ -113,6 +113,9 @@ void pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOIN
     float two_points_distance, altitude;
     int middle_intervals, interval;
 
+    float alfa1,alfa2;
+
+
     two_points_distance = twoPointsDistance(first_point, second_point);
     altitude = first_point.altitude * 0.3048;     // feet to meters conversion
 
@@ -124,6 +127,15 @@ void pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOIN
     }
     else{
         for(interval = 0; interval < (middle_intervals-1); interval++){
+            
+                alfa1=atan( (cos(second_point.latitude)*sin(second_point.longitude-first_point.longitude)) / ( cos(first_point.latitude)*sin(second_point.latitude) - sin(first_point.latitude)*cos(second_point.latitude)*cos(second_point.longitude-first_point.longitude)) )
+                alfa2=atan( (cos(first_point.latitude)*sin(second_point.longitude-first_point.longitude)) / ( -cos(second_point.latitude)*sin(first_point.latitude) + sin(second_point.latitude)*cos(first_point.latitude)*cos(second_point.longitude-first_point.longitude)) )
+
+
+            // SINAIS DOS ALFAS1 e 2 ?? Tem a ver com os quadrantes !! analisar !
+
+            
+
             // TO DO :: CALCULAR NAO SEI QUANTOS PONTOS ENTRE OS WAYPOINTS, CALCULANDO:
             // LATITUDE, LONGITUDE, 
             // SPEED (igual ao primeiro first_point.speed),

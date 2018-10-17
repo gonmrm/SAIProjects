@@ -106,15 +106,18 @@ float twoPointsDistance(WAYPOINT first_point, WAYPOINT second_point){
 }
 
 
-void pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOINT *middle_points){
+void pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOINT *middle_points) {
     /* It will calculate middle point values between two waypoints */
     // Points are in the great circle path between the two waypoints
 
     float two_points_distance, altitude;
     int middle_intervals, interval;
 
-    float alfa1,alfa2;
+    float alfa0,alfa01,alfa1,alfa2;
 
+    float sigma,sigma01,sigma02,sigma12;
+
+    //Ângulos em rad ou graus, ir ver !
 
     two_points_distance = twoPointsDistance(first_point, second_point);
     altitude = first_point.altitude * 0.3048;     // feet to meters conversion
@@ -128,11 +131,35 @@ void pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOIN
     else{
         for(interval = 0; interval < (middle_intervals-1); interval++){
             
-                alfa1=atan( (cos(second_point.latitude)*sin(second_point.longitude-first_point.longitude)) / ( cos(first_point.latitude)*sin(second_point.latitude) - sin(first_point.latitude)*cos(second_point.latitude)*cos(second_point.longitude-first_point.longitude)) )
-                alfa2=atan( (cos(first_point.latitude)*sin(second_point.longitude-first_point.longitude)) / ( -cos(second_point.latitude)*sin(first_point.latitude) + sin(second_point.latitude)*cos(first_point.latitude)*cos(second_point.longitude-first_point.longitude)) )
-
-
+                alfa1=atan( (cos(second_point.latitude)*sin(second_point.longitude-first_point.longitude)) / ( cos(first_point.latitude)*sin(second_point.latitude) - sin(first_point.latitude)*cos(second_point.latitude)*cos(second_point.longitude-first_point.longitude)) );
+                alfa2=atan( (cos(first_point.latitude)*sin(second_point.longitude-first_point.longitude)) / ( -cos(second_point.latitude)*sin(first_point.latitude) + sin(second_point.latitude)*cos(first_point.latitude)*cos(second_point.longitude-first_point.longitude)) );
+            
             // SINAIS DOS ALFAS1 e 2 ?? Tem a ver com os quadrantes !! analisar !
+
+                sigma12=atan( ( sqrt( ( cos(first_point.latitude)*sin(second_point.latitude) - sin(first_point.latitude)*cos(second_point.latitude)*cos(second_point.longitude-first_point.longitude) )^2 + ( cos(second_point.latitude)*sin(second_point.longitude-first_point.longitude) )^2 ) ) / ( sin(first_point.latitude)*sin(second_point.latitude) + cos(first_point.latitude)*cos(second_point.latitude)*cos(second_point.longitude-first_point.longitude) ) );
+
+                alfa0=atan( (sin(alfa1)*cos(first_point.latitude) ) / ( sqrt( (cos(alfa1))^2 + (sin(alfa1))^2 *(sin(first_point.latitude))^2 ) ) );
+
+                if (first_point.latitude==0 && alfa1== 0.5*pi)
+                    { sigma01=0; }
+                else
+                    { sigma01=atan2( (tan(first_point.latitude)) / (cos(alfa1)) ); }
+
+                sigma02=sigma01+sigma12;
+
+                alfa01=alfa1-alfa0;
+
+                //Calcular sigma
+
+                sigma= sigma01 + 20 000/(first_point.altitude+6371000);  //Maneira certa ???
+
+                middle_points[interval].latitude= atan ( (cos(alfa0)*sin(sigma)) / ( sqrt( (cos(sigma))^2 + (sin(alfa0))^2 * (sin(sigma))^2 ) ) );
+                
+                middle_points[interval].longitude= atan2 ( sin(alfa0)*sin(sigma) / (cos(sigma)) );
+                middle_points[interval].longitude= middle_points[interval].longitude - alfa0 ;
+
+
+
 
             
 

@@ -28,7 +28,7 @@ float degreesToRadians(float deg_angle);
 void getWaypointValues(char *line, WAYPOINT *waypoint);
 int readDataFromFile(char *file_name, WAYPOINT *data);
 float twoPointsDistance(WAYPOINT first_point, WAYPOINT second_point);
-void pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOINT *middle_points)
+void pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOINT *middle_points);
 float calculatePathDistance(WAYPOINT *data, int number_waypoints);
 
 

@@ -37,10 +37,10 @@ void getWaypointValues(char *line, WAYPOINT *waypoint){
     altitude    = atof(values[3]);
     speed       = atof(values[4]);
 
-    waypoint.latitude   = latitude;
-    waypoint.longitude  = longitude;
-    waypoint.altitude   = altitude;
-    waypoint.speed      = speed;
+    waypoint->latitude   = latitude;
+    waypoint->longitude  = longitude;
+    waypoint->altitude   = altitude;
+    waypoint->speed      = speed;
 
 
 }
@@ -65,7 +65,7 @@ int readDataFromFile(char *file_name, WAYPOINT *data){
 
         while(fgets(line, sizeof line, file) != NULL){
             // reads line
-            getWaypointValues(line, *data[waypoint]);
+            getWaypointValues(line, &data[number_waypoints]);
             number_waypoints++;
         }
 
@@ -120,7 +120,7 @@ void pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOIN
 
     if(middle_intervals <= 1){
         // no points in the middle
-        return 0;
+        
     }
     else{
         for(interval = 0; interval < (middle_intervals-1); interval++){

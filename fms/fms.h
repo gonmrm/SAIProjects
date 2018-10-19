@@ -18,6 +18,7 @@ typedef struct waypoint{
     float latitude;
     float longitude;
     float altitude;
+    float theta;
     float speed;
     float heading;
     float time;

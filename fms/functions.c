@@ -132,11 +132,13 @@ int pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOINT
 
     middle_intervals = two_points_distance / 20000;     // divide in points separated by 20km
 
+    middle_points[0]=first_point; //Colocar no primeiro ponto desta linha da matriz o waypoint que lhe dá inicio
+
     if(middle_intervals <= 1){
         // no points in the middle      
     }
     else{
-        for(interval = 0; interval < (middle_intervals-1); interval++){
+        for(interval = 1; interval <= (middle_intervals-1); interval++){
             
                 //alfa1=atan( (cos(second_point.latitude)*sin(second_point.longitude-first_point.longitude)) / ( cos(first_point.latitude)*sin(second_point.latitude) - sin(first_point.latitude)*cos(second_point.latitude)*cos(second_point.longitude-first_point.longitude)) );
                 //alfa2=atan( (cos(first_point.latitude)*sin(second_point.longitude-first_point.longitude)) / ( -cos(second_point.latitude)*sin(first_point.latitude) + sin(second_point.latitude)*cos(first_point.latitude)*cos(second_point.longitude-first_point.longitude)) );
@@ -173,7 +175,7 @@ int pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOINT
 
                 //Calcular sigma
 
-                sigma= sigma01 + ((interval+1)*20000)/(first_point.altitude+6371000);  //Maneira certa ???
+                sigma= sigma01 + ((interval)*20000)/(first_point.altitude+6371000);  //Maneira certa ???
 
                 //middle_points[interval].latitude= atan ( (cos(alfa0)*sin(sigma)) / ( sqrt( pow((cos(sigma)),2) + pow((sin(alfa0)),2) * pow((sin(sigma)),2) ) ) );
                 //middle_points[interval].longitude= atan ( sin(alfa0)*sin(sigma) / (cos(sigma)) );
@@ -200,7 +202,7 @@ int pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOINT
         printf("latitude : %.6f     longitude   : %.6f \n",radiansToDegrees(middle_points[interval].latitude), radiansToDegrees(middle_points[interval].longitude));
     }
 
-    return middle_intervals;
+    return middle_intervals+1;
 }
 
 
@@ -223,25 +225,44 @@ float calculatePathDistance(WAYPOINT *data, int number_waypoints){
         printf("\n \n");
     }
 
-    for(int i=0 ; i < number_waypoints;i++)
-    {   
-        for(int j=0; j<middle_intervals[i]; j++)
-        {
-        
-        //Caso especial para calculo de heading entre waypoint 0 e middle point 0
-        // Calcular o heading inicial entre o middle_point[i] e o middle_point[i+1]
-        //Caso especial para calculo de heading entre middle point último e o waypoint 1
+    //BASICAMENTE DA FORMA COMO FIZ AS COISAS, NESTE MOMENTO, A MATRIZ MIDDLE_POINTS TEM EM CADA UMA DAS LINHAS O WAYPOINT QUE DÁ INICIO
+    //A ESSE PERCURSO E TODOS OS MIDDLE POINTS QUE O SUCEDEM ANTES DO WAYPOINT SEGUINTE
+    // JÁ LÁ TEM TAMBÉM AS LATITUDES, LONGITUDES E SPEEDS CORRETAS
 
-        //CRIAR UM SITIO ONDE GUARDAR ESTAS CENAS
-        }
+    //DEPOIS
+    
+    // CRIAR FUNÇÃO: COMPUTEHEADINGBETWEENPOINTS
+    // DEPOIS CRIAR UM CICLO QUE CALCULE O HEADING INICIAL ENTRE ENTRE O PRIMEIRO WAYPOINT E O PRIMEIRO MIDDLE POINT,
+    // DEPOIS CALCULAR SUCESSIVAMENTE O HEADING INICIAL ENTRE OS VARIOS MIDDLE POINTS; DEPOIS ENTRE O ULTIMO MIDDLE POINT
+    // E O SEGUNDO WAYPOINT, E POR AÍ ADIANTE ATÉ AO FINAL
+    // TER EM ATENÇÃO QUE TEMOS UM VETOR CHAMADO MIDDLE_INTERVALS QUE NOS DIZ QUANTOS PONTOS EXISTEM EM CADA LINHA
+    // GUARDAR A INFORMAÇÃO NA MATRIZ MIDDLE_POINTS
+    
+    
+    // CRIAR FUNÇÃO QUE ATRIBUA TEMPOS AOS PONTOS DA MATRIZ MIDDLE_POINTS DA SEGUINTE FORMA
+    // PEGAR NO PRIMEIRO WAYPOINT E ATRIBUIR TEMPO 0 SEGUNDOS (OU QUEREM TRABALHAR NUMA UNIDADE MAIS PEQUENA QUE SEGUNDOS???)
+    // PEGAR NO SEGUNDO WAYPOINT E UTILIZANDO A SPEED DO PRIMEIRO WAYPOINT, E A DISTANCIA ENTRE ELES, CALCULAR QUANTOS SEGUNDOS DEMORAMOS A CHEGAR LÁ
+    // ASSIM SUCESSIVAMENTE ATRIBUINDO OS TEMPOS AOS WAYPOINTS TODOS
+    // DEPOIS PASSAMOS PARA OS MIDDLE POINTS DA SEGUINTE FORMA: PEGA-SE NO TEMPO DO WAYPOINT INICIAL E DE SEGUIDA SOMA-SE 20KM / VELOCIDADE E ASSIM OBTEMOS
+    // OS TEMPOS PARA CADA MIDDLE POINT ATÉ AO FIM DE CADA LINHA
+    //
 
-    }
 
-    // TO DO ::
-    // Nesta altura o middle_points já estará cheio de pontos,
-    // portanto tem de haver uma função que passe por todos esses pontos
-    // e calcule true heading em cada um, tempo em que está a passar por lá
-    // (depois mais para a frente também o theta...)
+    // CRIAR FUNÇÃO: COMPUTEALTITUDES
+    // AGORA QUE JÁ TEMOS OS TEMPOS PARA CADA WAYPOINT E MIDDLE_POINT, UTILIZAR A EXPRESSÃO DIFERENCIAL PARA ATRIBUIR ATITUDES
+    // AQUELA EXPRESSÃO TEM UMA SOLUÇÃO DO TIPO h(t)= - Constante * e^(-alfa*t)+href(t)
+    // Sugiro uma solução como esta h(t) = -1* e ^(-0.1 * t) + altura_do_waypoint_seguinte
+    // o momento t=0 será a chegada ao waypoint seguinte, logo o tempo tem de ser encarado "on reverse"
+    // No entanto tenho muitas duvidas do que fazer com a altitude inicial ???
+    // Sugiro, em caso de duvida, pegar nos tempos do primeiro waypoint e do segundo, e juntamente com a sua diferença de altitude
+    // calcular um declive constante de forma a calcular altitudes para cada tempo dos middle_points
+
+    //CRIAR Função COMPUTE THETA
+    // PEGANDO NA DIFERENÇA DE ALTITUDE ENTRE 2 PONTOS CONSECUTIVOS, E A DISTANCIA ENTRE ELES, CALCULAR O ANGULO THETA E COLOCA-LO NA MATRIZ
+    // middle_points[1][150].theta= calcular o ângulo com um triângulo simples
+    
+
+    // TEMOS O PONTO 1 FEITO NO FINAL DISTO
 
     // Passing total distance from m to NM
     total_distance = total_distance / 1852.0;

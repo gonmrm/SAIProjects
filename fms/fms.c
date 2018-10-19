@@ -48,6 +48,8 @@ int main(int argc, char *argv[])
     path_distance = calculatePathDistance(data, number_waypoints);     // returns final distance in nmi
 
     printf("GMD: %f nmi\n", path_distance);
+
+    
     
     return 0;
 

@@ -39,8 +39,7 @@ int main(int argc, char *argv[])
     /*
     for(int i = 0; i < number_waypoints; i++){
         printf("%d:\n", i+1);
-        for(int j = 0; j < FIELDS; j++)
-            printf("%f\n", data[i][j]);
+        printf("%f , %f\n", data[i].latitude, data[i].longitude);
     }
     */
     ////////////

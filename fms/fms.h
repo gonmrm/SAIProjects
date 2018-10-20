@@ -12,7 +12,9 @@
 #define MAX_WAYPOINTS 100 
 #define FIELDS 4
 #define PI 3.14159265
-#define RADIUS 637100
+#define RADIUS 6371000
+#define INTERVAL_DISTANCE 10000
+#define ALPHA 0.007
 
 typedef struct waypoint{
     float latitude;
@@ -21,7 +23,7 @@ typedef struct waypoint{
     float theta;
     float speed;
     float heading;
-    float time;
+    float time;     // seconds
 } WAYPOINT;
 
 

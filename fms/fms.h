@@ -13,7 +13,7 @@
 #define FIELDS 4
 #define PI 3.14159265
 #define RADIUS 6371000
-#define INTERVAL_DISTANCE 10000
+#define INTERVAL_DISTANCE 20000
 #define ALPHA 0.007
 
 typedef struct waypoint{
@@ -23,7 +23,9 @@ typedef struct waypoint{
     float theta;
     float speed;
     float heading;
-    float time;     // seconds
+    float time;
+    float v_north;
+    float v_east;    
 } WAYPOINT;
 
 
@@ -34,6 +36,7 @@ int readDataFromFile(char *file_name, WAYPOINT *data);
 float twoPointsDistance(WAYPOINT first_point, WAYPOINT second_point);
 int pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOINT *middle_points);
 float calculatePathDistance(WAYPOINT *data, int number_waypoints);
+float compute_waypoint_time(WAYPOINT first_point, WAYPOINT second_point,float two_points_distance);
 
 
 #endif      // endif for definition of __FMS_H__ 

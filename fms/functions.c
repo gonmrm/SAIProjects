@@ -109,7 +109,7 @@ float twoPointsDistance(WAYPOINT first_point, WAYPOINT second_point){
     altitude = first_point.altitude * 0.3048;     // feet to meters conversion
 
     // Haversine formula: computes angle between two points on a sphere
-    angle = 2 * asin(sqrt(pow(sin(latitude_var / 2.0), 2) + cos(first_latitude)*cos(second_latitude)*pow(sin(longitude_var / 2.0), 2)));
+    angle = 2 * RADIUS* asin(sqrt(pow(sin(latitude_var / 2.0), 2) + cos(first_latitude)*cos(second_latitude)*pow(sin(longitude_var / 2.0), 2)));
     distance = angle * (RADIUS + altitude);
 
     return distance;

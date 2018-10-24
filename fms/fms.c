@@ -46,7 +46,8 @@ int main(int argc, char *argv[])
 
     data[0].time=0;
 
-    path_distance = calculatePathDistance(data, number_waypoints);     // returns final distance in nmi
+    path_distance = calculatePathDistance(data, number_waypoints);    // returns final distance in nmi
+    calculatePositions(data,number_waypoints,0);
 
     printf("GMD: %f nmi\n", path_distance);
 

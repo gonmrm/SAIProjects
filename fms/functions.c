@@ -164,14 +164,15 @@ int pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOINT
             middle_points[interval].latitude    = atan2 ( (cos(alfa0)*sin(sigma)) , ( sqrt( pow((cos(sigma)),2) + pow((sin(alfa0)),2) * pow((sin(sigma)),2) ) ) );
             middle_points[interval].longitude   = atan2 ( sin(alfa0)*sin(sigma) , (cos(sigma)) ) + lambda0; 
             middle_points[interval].altitude    = first_point.altitude + var_altitude - var_altitude * exp(-ALPHA * middle_points[interval].time);
+            middle_points[interval - 1].heading = calculateHeading(middle_points[interval - 1], middle_points[interval]);
         }
         next_time       = ((interval + 1) * INTERVAL_DISTANCE / (first_point.speed * 1000 / 3600.00))+first_point.time;
         next_altitude   = first_point.altitude + var_altitude - var_altitude * exp(-ALPHA * next_time);
 
         middle_points[interval].theta   = atan2( (next_altitude - middle_points[interval].altitude), INTERVAL_DISTANCE );
-        middle_points[interval].heading = atan2 ( tan(alfa0), cos(sigma) );
     }
 
+    middle_points[interval - 1].heading = middle_points[interval - 2].heading;  // last middle_point is assumed to have same heading as the one before
     // DEBUGGING
     ///*
     //for(interval = 0; interval <= middle_intervals; interval++){
@@ -182,35 +183,23 @@ int pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOINT
 
     return middle_intervals; //ultima posição com dados relevantes no vetor middle_points;
 }
+
 float calculateHeading(WAYPOINT first_point, WAYPOINT second_point){
+    float first_latitude, second_latitude;
+    float var_longitude;
+    float first_heading;
+    float x, y;
 
-    WAYPOINT final_point;
-    float initial_altitude, var_altitude;
-    float alfa0,alfa1,alfa2;
-    float sigma,sigma01,sigma02,sigma12;
-    float lambda0,lambda01;
-    float next_time, next_altitude;
+    first_latitude = first_point.latitude;
+    second_latitude = second_point.latitude;
+    var_longitude = second_point.longitude - first_point.longitude;
 
-    initial_altitude    = first_point.altitude * 0.3048;     // feet to meters conversion
-    var_altitude        = second_point.altitude - first_point.altitude;
+    y = sin(var_longitude) * cos(second_latitude);
+    x = cos(first_latitude) * sin(second_latitude) - (sin(first_latitude) * cos(second_latitude) * cos(var_longitude));
 
-    alfa1 = atan2( (cos(second_point.latitude)*sin(second_point.longitude-first_point.longitude)), ( cos(first_point.latitude)*sin(second_point.latitude) - sin(first_point.latitude)*cos(second_point.latitude)*cos(second_point.longitude-first_point.longitude)) );
-    alfa2 = atan2( (cos(first_point.latitude)*sin(second_point.longitude-first_point.longitude)), ( -cos(second_point.latitude)*sin(first_point.latitude) + sin(second_point.latitude)*cos(first_point.latitude)*cos(second_point.longitude-first_point.longitude)) );
-    alfa0 = atan2( (sin(alfa1)*cos(first_point.latitude) ), ( sqrt( pow((cos(alfa1)),2) + pow((sin(alfa1)),2) * pow((sin(first_point.latitude)),2) ) ) );
+    first_heading = atan2(y, x);
 
-    if (first_point.latitude==0 && alfa1== 0.5*PI)
-        sigma01 = 0;
-    else
-       sigma01 = atan2( (tan(first_point.latitude)) , (cos(alfa1)) );            
-        //ACRESCENTAR aquela condição de se está acima de 0 ou abaixo de 0 a todos os atan2)
-        //sigma12=atan2( ( sqrt( pow(( cos(first_point.latitude)*sin(second_point.latitude) - sin(first_point.latitude)*cos(second_point.latitude)*cos(second_point.longitude-first_point.longitude) ),2) + pow(( cos(second_point.latitude)*sin(second_point.longitude-first_point.longitude) ),2) ) ), ( sin(first_point.latitude)*sin(second_point.latitude) + cos(first_point.latitude)*cos(second_point.latitude)*cos(second_point.longitude-first_point.longitude) ) );
-        //sigma02=sigma01+sigma12;
-
-        // Rever esta função-INTERVAL_DISTANCE
-    sigma = sigma01 + (INTERVAL_DISTANCE)/((initial_altitude + RADIUS) * 1.00);  // 1.00 for remaining float
-    final_point.heading = atan2 ( tan(alfa0), cos(sigma) );
-
-    return final_point.heading;
+    return first_heading;
 }
 
 
@@ -231,7 +220,8 @@ float calculatePathDistance(WAYPOINT *data, int number_waypoints){
         total_distance = total_distance + two_points_distance;
         printf("Distance so far: W1->W%d: %.6f meters\n", point+2, total_distance);  // total distance so far
         data[point+1].time=compute_waypoint_time(data[point],data[point+1],two_points_distance);
-   }
+    }
+
 
 
     // Passing total distance from m to NM
@@ -245,18 +235,21 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
     WAYPOINT middle_points[number_waypoints][2000];
     WAYPOINT pontos_com_erro[number_waypoints][2000];
     float two_points_distance;
+    float latitude_degree_distance;
     // PONTO 2
 
-    if(auto_pilot==0){
     
-        for(point=0; point <number_waypoints;point++){
+    
+    for(point=0; point <number_waypoints-1;point++){
 
-            two_points_distance = twoPointsDistance(data[point], data[point+1]);
-            data[point+1].time=compute_waypoint_time(data[point],data[point+1],two_points_distance);
-            middle_intervals[point] = pointsBetweenWaypoints(data[point], data[point+1], middle_points[point]);
-       }
+        two_points_distance = twoPointsDistance(data[point], data[point+1]);
+        data[point+1].time=compute_waypoint_time(data[point],data[point+1],two_points_distance);
+        middle_intervals[point] = pointsBetweenWaypoints(data[point], data[point+1], middle_points[point]);
+    }
 
-        for(point = 0; point < number_waypoints; point++){
+    if(auto_pilot==0){
+
+        for(point = 0; point < number_waypoints-1; point++){
 
             float speed_antiga=data[point].speed;
             //printf("SPEED ANTIGA = %.6f\n",speed_antiga);
@@ -272,7 +265,7 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
             }
         }
 
-        for(point = 0; point < number_waypoints; point++){
+        for(point = 0; point < number_waypoints-1; point++){
 
             for(int i=0;i<=middle_intervals[point]-1;i++){
 
@@ -286,10 +279,9 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
                 //printf("var_dist north = %.6f\n",var_dist_north);
                 //printf("var_dist east = %.6f\n",var_dist_east);
 
-                float var_lat= var_dist_north/111139;
-                float var_long= var_dist_east/111139;
-
-                //printf("var_lat = %.6f\n",radiansToDegrees(var_lat));
+                latitude_degree_distance = 2 * PI * (RADIUS + pontos_com_erro[point][i].altitude) / 360.0;
+                float var_lat= var_dist_north/latitude_degree_distance;
+                float var_long= var_dist_east/( cos(pontos_com_erro[point][i].latitude) * latitude_degree_distance );
 
                 pontos_com_erro[point][i+1].latitude=pontos_com_erro[point][i].latitude+degreesToRadians(var_lat);
                 pontos_com_erro[point][i+1].longitude=pontos_com_erro[point][i].longitude+degreesToRadians(var_long);
@@ -301,7 +293,7 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
         }
 
 
-        for(point = 0; point < number_waypoints; point++){
+        for(point = 0; point < number_waypoints-1; point++){
 
             for(int i=0;i<=middle_intervals[point]-1;i++){
 
@@ -323,78 +315,91 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
         WAYPOINT pontos_com_controlador[number_waypoints][2000];
 
         float erro;
-        float speed_corrigida;
+        float speed_corrigida, speed_antiga, new_speed;
 
-        for(point = 0; point < number_waypoints; point++){
+        for(point = 0; point < number_waypoints-1; point++){
 
-            float speed_antiga=data[point].speed;
+            speed_antiga=data[point].speed;
             //printf("SPEED ANTIGA = %.6f\n",speed_antiga);
 
             erro = 0;
+            int i;
+            for(i=0;i<=middle_intervals[point];i++){  
 
-            for(int i=0;i<=middle_intervals[point];i++){  
-                    pontos_com_controlador[point][i]=middle_points[point][i];
+                pontos_com_controlador[point][i]=middle_points[point][i];
+            }
 
-                    if (i != 0){
-                        speed_corrigida = pontos_com_controlador[point][i - 1].speed - 2 * erro;
-                    }
-                    else{
-                        speed_corrigida = speed_antiga;
-                    }
+            for(i=0;i<=middle_intervals[point];i++){  
 
-                    float new_speed= speed_corrigida * ( 1.0 + 0.01*sin( (2*PI*(middle_points[point][i].time) ) / (20*60) ) );
-                    //printf("SPEED NOVA = %.6f\n",new_speed);
-                    pontos_com_controlador[point][i].speed = new_speed;
 
-                    // TO DO ::::::::
-                    /*
-                    Isolar função que calcula heading, outra que calcula theta, etc..., que recebem dois middle points e fazem o cálculo.
-                    Neste caso vamos utilizar o calculo entre o ponto_corrigido atual e o middle_point [atual+1]
+                if (i != 0){
+                    speed_corrigida = pontos_com_controlador[point][i - 1].speed - 2 * erro;
+                }
+                else{
+                    speed_corrigida = speed_antiga;
+                }
 
-                    Já temos heading e theta definidos no sitio. Agora calculamos v_north e v_east para calcular depois lat e lon do proximo ponto (utilizando já o novo heading), isto está em baixo em comentário.
+                new_speed= speed_corrigida * ( 1.0 + 0.01*sin( (2*PI*(middle_points[point][i].time) ) / (20*60) ) );
+                //printf("SPEED NOVA = %.6f\n",new_speed);
+                pontos_com_controlador[point][i].speed = new_speed;
 
-                    Trocar cena dos 111139
+                // TO DO ::::::::
+                /*
+                Isolar função que calcula heading, outra que calcula theta, etc..., que recebem dois middle points e fazem o cálculo.
+                Neste caso vamos utilizar o calculo entre o ponto_corrigido atual e o middle_point [atual+1]
 
-                    */
+                Já temos heading e theta definidos no sitio. Agora calculamos v_north e v_east para calcular depois lat e lon do proximo ponto (utilizando já o novo heading), isto está em baixo em comentário.
 
-                    pontos_com_controlador[point][i].v_north= pontos_com_controlador[point][i].speed * cos (pontos_com_controlador[point][i].theta)*cos(pontos_com_controlador[point][i].heading);
-                    pontos_com_controlador[point][i].v_east= pontos_com_controlador[point][i].speed * cos (pontos_com_controlador[point][i].theta)*sin(pontos_com_controlador[point][i].heading);
+                */
 
-                    erro = pontos_com_controlador[point][i].speed - speed_antiga;
-                    printf("%f - %f\n", pontos_com_controlador[point][i].speed, speed_antiga);
+                pontos_com_controlador[point][i].heading = calculateHeading(pontos_com_controlador[point][i], pontos_com_controlador[point][i+1]);
+
+                pontos_com_controlador[point][i].v_north= pontos_com_controlador[point][i].speed * cos (pontos_com_controlador[point][i].theta)*cos(pontos_com_controlador[point][i].heading);
+                pontos_com_controlador[point][i].v_east= pontos_com_controlador[point][i].speed * cos (pontos_com_controlador[point][i].theta)*sin(pontos_com_controlador[point][i].heading);
+
+                erro = pontos_com_controlador[point][i].speed - speed_antiga;
+                printf("%f - %f\n", pontos_com_controlador[point][i].speed, speed_antiga);
+
+                float var_tempo= pontos_com_controlador[point][i+1].time-pontos_com_controlador[point][i].time;
+
+                //printf("var_tempo = %.6f\n",var_tempo);
+
+                float var_dist_north= (pontos_com_controlador[point][i].v_north * 1000 / 3600)*var_tempo; 
+                float var_dist_east = (pontos_com_controlador[point][i].v_east * 1000 / 3600)*var_tempo;
+
+                //printf("var_dist north = %.6f\n",var_dist_north);
+                //printf("var_dist east = %.6f\n",var_dist_east);
+
+                latitude_degree_distance = 2 * PI * (RADIUS + pontos_com_controlador[point][i].altitude) / 360.0;
+                float var_lat= var_dist_north/latitude_degree_distance;
+                float var_long= var_dist_east/( cos(pontos_com_controlador[point][i].latitude) * latitude_degree_distance );
+
+                //printf("var_lat = %.6f\n",radiansToDegrees(var_lat));
+
+                pontos_com_controlador[point][i+1].latitude =pontos_com_controlador[point][i].latitude+degreesToRadians(var_lat);
+                pontos_com_controlador[point][i+1].longitude=pontos_com_controlador[point][i].longitude+degreesToRadians(var_long);
+
 
             }
+            pontos_com_controlador[point][i].heading = pontos_com_controlador[point][i - 1].heading;
+        }
+        printf("%d\n", number_waypoints);
+        for(point = 0; point < number_waypoints-1; point++){
+
+            for(int i=0;i<=middle_intervals[point]-1;i++){
+
+                printf("SEM ERRO : LATITUDE : %.4f LONGITUDE : %.4f TIME : %.4f ALTITUDE : %.4f THETA : %.4f HEADING : %.4f\n",radiansToDegrees(middle_points[point][i].latitude), radiansToDegrees(middle_points[point][i].longitude), middle_points[point][i].time, middle_points[point][i].altitude, radiansToDegrees(middle_points[point][i].theta), radiansToDegrees(middle_points[point][i].heading));
+                printf("COM CTRL : LATITUDE : %.4f LONGITUDE : %.4f TIME : %.4f ALTITUDE : %.4f THETA : %.4f HEADING : %.4f\n",radiansToDegrees(pontos_com_controlador[point][i].latitude), radiansToDegrees(pontos_com_controlador[point][i].longitude), pontos_com_controlador[point][i].time, pontos_com_controlador[point][i].altitude, radiansToDegrees(pontos_com_controlador[point][i].theta), radiansToDegrees(pontos_com_controlador[point][i].heading));
+
+
+
+            }
+
+
         }
     }
     
-    /*
-    for(point = 0; point < number_waypoints; point++){
-        
-        for(int i=0;i<=middle_intervals[point]-1;i++){
-            
-            float var_tempo= pontos_com_erro[point][i+1].time-pontos_com_erro[point][i].time;
-
-            //printf("var_tempo = %.6f\n",var_tempo);
-
-            float var_dist_north= (pontos_com_erro[point][i].v_north * 1000 / 3600)*var_tempo; 
-            float var_dist_east= (pontos_com_erro[point][i].v_east * 1000 / 3600)*var_tempo;
-
-            //printf("var_dist north = %.6f\n",var_dist_north);
-            //printf("var_dist east = %.6f\n",var_dist_east);
-
-            float var_lat= var_dist_north/111139;  // var_lat/(RADIUS+altitude)
-            float var_long= var_dist_east/111139;  // var_lon/((RADIUS+altitude)*cos(latitude) ou uma média da latitude final com a inicial
-
-            //printf("var_lat = %.6f\n",radiansToDegrees(var_lat));
-
-            pontos_com_erro[point][i+1].latitude=pontos_com_erro[point][i].latitude+degreesToRadians(var_lat);
-            pontos_com_erro[point][i+1].longitude=pontos_com_erro[point][i].longitude+degreesToRadians(var_long);
-
-
-        }
-
-    
-    }*/
+    return 0.0;
 
 
 

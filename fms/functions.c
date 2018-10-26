@@ -411,10 +411,16 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
 
 float compute_waypoint_time(WAYPOINT first_point, WAYPOINT second_point,float two_points_distance){
 
+int i=0;
+
 
 double tempo=two_points_distance / first_point.speed;
-tempo=tempo*1000/3600;
+
+tempo=tempo*(3600/1000.0);
+
 tempo=first_point.time+tempo;
 
+i=i+1;
 return tempo;
+
 }

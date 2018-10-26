@@ -13,7 +13,11 @@
 #define FIELDS 4
 #define PI 3.14159265
 #define RADIUS 6371000
+<<<<<<< HEAD
 #define INTERVAL_DISTANCE 20000
+=======
+#define INTERVAL_DISTANCE 10000
+>>>>>>> df9803123fe4bfd9a6027b236cc929ec9a30acdb
 #define ALPHA 0.007
 
 typedef struct waypoint{
@@ -23,9 +27,13 @@ typedef struct waypoint{
     float theta;
     float speed;
     float heading;
+<<<<<<< HEAD
     float time;
     float v_north;
     float v_east;    
+=======
+    float time;     // seconds
+>>>>>>> df9803123fe4bfd9a6027b236cc929ec9a30acdb
 } WAYPOINT;
 
 

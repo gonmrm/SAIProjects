@@ -126,7 +126,10 @@ int pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOINT
     float sigma,sigma01,sigma02,sigma12;
     float lambda0,lambda01;
     float next_time, next_altitude;
+<<<<<<< HEAD
 
+=======
+>>>>>>> df9803123fe4bfd9a6027b236cc929ec9a30acdb
 
     two_points_distance = twoPointsDistance(first_point, second_point);
     initial_altitude    = first_point.altitude * 0.3048;     // feet to meters conversion
@@ -140,15 +143,29 @@ int pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOINT
     alfa2 = atan2( (cos(first_point.latitude)*sin(second_point.longitude-first_point.longitude)), ( -cos(second_point.latitude)*sin(first_point.latitude) + sin(second_point.latitude)*cos(first_point.latitude)*cos(second_point.longitude-first_point.longitude)) );
     alfa0 = atan2( (sin(alfa1)*cos(first_point.latitude) ), ( sqrt( pow((cos(alfa1)),2) + pow((sin(alfa1)),2) * pow((sin(first_point.latitude)),2) ) ) );
 
+<<<<<<< HEAD
     if (first_point.latitude==0 && alfa1== 0.5*PI)
         sigma01 = 0;
     else
        sigma01 = atan2( (tan(first_point.latitude)) , (cos(alfa1)) );
+=======
+    if (first_point.latitude==0 && alfa1== 0.5*PI){
+        sigma01 = 0;
+    }
+    else{
+       sigma01 = atan2( (tan(first_point.latitude)) , (cos(alfa1)) );
+    }
+>>>>>>> df9803123fe4bfd9a6027b236cc929ec9a30acdb
 
     lambda01    = atan2( (sin(alfa0)*sin(sigma01)) , (cos(sigma01)) );
     lambda0     = first_point.longitude - lambda01;
 
+<<<<<<< HEAD
     for(interval = 0; interval <= middle_intervals; interval++){
+=======
+
+    for(interval = 0; interval <= (middle_intervals-1); interval++){
+>>>>>>> df9803123fe4bfd9a6027b236cc929ec9a30acdb
             
         //ACRESCENTAR aquela condição de se está acima de 0 ou abaixo de 0 a todos os atan2)
         //sigma12=atan2( ( sqrt( pow(( cos(first_point.latitude)*sin(second_point.latitude) - sin(first_point.latitude)*cos(second_point.latitude)*cos(second_point.longitude-first_point.longitude) ),2) + pow(( cos(second_point.latitude)*sin(second_point.longitude-first_point.longitude) ),2) ) ), ( sin(first_point.latitude)*sin(second_point.latitude) + cos(first_point.latitude)*cos(second_point.latitude)*cos(second_point.longitude-first_point.longitude) ) );
@@ -157,13 +174,18 @@ int pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOINT
         sigma = sigma01 + ((interval)*INTERVAL_DISTANCE)/((initial_altitude + RADIUS) * 1.00);  // 1.00 for remaining float
 
         middle_points[interval].speed       = first_point.speed;
+<<<<<<< HEAD
         middle_points[interval].time        = (interval * INTERVAL_DISTANCE / (first_point.speed * 1000 / 3600.00))+first_point.time;
+=======
+        middle_points[interval].time        = interval * INTERVAL_DISTANCE / (first_point.speed * 1000 / 3600.00);
+>>>>>>> df9803123fe4bfd9a6027b236cc929ec9a30acdb
 
         if (interval != 0){
             // first point does not need to calculate these values
             middle_points[interval].latitude    = atan2 ( (cos(alfa0)*sin(sigma)) , ( sqrt( pow((cos(sigma)),2) + pow((sin(alfa0)),2) * pow((sin(sigma)),2) ) ) );
             middle_points[interval].longitude   = atan2 ( sin(alfa0)*sin(sigma) , (cos(sigma)) ) + lambda0; 
             middle_points[interval].altitude    = first_point.altitude + var_altitude - var_altitude * exp(-ALPHA * middle_points[interval].time);
+<<<<<<< HEAD
             middle_points[interval - 1].heading = calculateHeading(middle_points[interval - 1], middle_points[interval]);
         }
         next_time       = ((interval + 1) * INTERVAL_DISTANCE / (first_point.speed * 1000 / 3600.00))+first_point.time;
@@ -182,6 +204,26 @@ int pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOINT
     ////////////
 
     return middle_intervals; //ultima posição com dados relevantes no vetor middle_points;
+=======
+        }
+        next_time       = (interval + 1) * INTERVAL_DISTANCE / (first_point.speed * 1000 / 3600.00);
+        next_altitude   = first_point.altitude + var_altitude - var_altitude * exp(-ALPHA * next_time);
+
+        middle_points[interval].theta   = atan2( (next_altitude - middle_points[interval].altitude), INTERVAL_DISTANCE );
+        middle_points[interval].heading = atan2 ( tan(alfa0), cos(sigma) );
+
+    }
+
+    // DEBUGGING
+    ///*
+    for(interval = 0; interval < (middle_intervals-1); interval++){
+        printf("latitude : %.4f longitude : %.4f time : %.4f altitude : %.4f theta : %.4f heading : %.4f\n",radiansToDegrees(middle_points[interval].latitude), radiansToDegrees(middle_points[interval].longitude), middle_points[interval].time, middle_points[interval].altitude, radiansToDegrees(middle_points[interval].theta), radiansToDegrees(middle_points[interval].heading));
+    }
+    //*/
+    ////////////
+
+    return middle_intervals+1;
+>>>>>>> df9803123fe4bfd9a6027b236cc929ec9a30acdb
 }
 
 float calculateHeading(WAYPOINT first_point, WAYPOINT second_point){
@@ -207,7 +249,7 @@ float calculatePathDistance(WAYPOINT *data, int number_waypoints){
     /* It will calculate the global min distance from a set of waypoints in a matrix */
     // :::: Returns final_distance in Nautical Miles
     
-    int point;
+    int point, middle_intervals[number_waypoints-1];
     float total_distance = 0;
     float two_points_distance;
     
@@ -215,6 +257,7 @@ float calculatePathDistance(WAYPOINT *data, int number_waypoints){
     
     for(point=0; point <number_waypoints-1;point++){
 
+<<<<<<< HEAD
         two_points_distance = twoPointsDistance(data[point], data[point+1]);
         printf("Distance between Waypoint W%d and W%d is %.6f meters \n", point+1, point+2, two_points_distance);
         total_distance = total_distance + two_points_distance;
@@ -223,6 +266,19 @@ float calculatePathDistance(WAYPOINT *data, int number_waypoints){
     }
 
 
+=======
+    for(point = 1; point < number_waypoints; point++){
+        // cycle sums distances between consecutive points
+        two_points_distance = twoPointsDistance(data[point-1], data[point]);
+        middle_intervals[point-1] = pointsBetweenWaypoints(data[point-1], data[point], middle_points[point-1]);
+        total_distance = total_distance + two_points_distance;
+        printf("1->%d: %f meters\n", point+1, total_distance);  // total distance so far
+        printf("\n \n");
+    }
+
+    // Passing total distance from m to NM
+    total_distance = total_distance / 1852.0;
+>>>>>>> df9803123fe4bfd9a6027b236cc929ec9a30acdb
 
     // Passing total distance from m to NM
     printf("Total distance in nautical miles: %.6f\n",total_distance / 1852.0);

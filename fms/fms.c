@@ -51,9 +51,12 @@ int main(int argc, char *argv[])
 
     printf("GMD: %f nmi\n", path_distance);
 
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> df9803123fe4bfd9a6027b236cc929ec9a30acdb
     
     
     return 0;

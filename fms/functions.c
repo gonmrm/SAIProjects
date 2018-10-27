@@ -236,6 +236,14 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
     WAYPOINT pontos_com_controlador[number_waypoints][2000];
     float two_points_distance;
     float latitude_degree_distance;
+    float ui_prev;
+    float ui;
+    float up;
+    float error_prev;
+    float K_I=0.1;
+    float K_P=0.6;
+    float K2 = K_P*K_I*10/2;
+
     // PONTO 2
 
     
@@ -345,8 +353,13 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
 
 
             */
+
                 if (i != 0){
-                    speed_corrigida = pontos_com_controlador[point][i - 1].speed - 0.5 * erro;
+                    up = K_P * (erro);
+                    ui = ui_prev + K2 * (erro + error_prev);
+                    speed_corrigida = pontos_com_controlador[point][i - 1].speed -(ui+up) ;
+                    ui_prev = ui;
+                    error_prev = erro;
                 }
                 else{
                     speed_corrigida = speed_antiga;

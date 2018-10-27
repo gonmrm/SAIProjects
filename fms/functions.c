@@ -233,6 +233,7 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
     int point, middle_intervals[number_waypoints-1];
     WAYPOINT middle_points[number_waypoints][2000];
     WAYPOINT pontos_com_erro[number_waypoints][2000];
+    WAYPOINT pontos_com_controlador[number_waypoints][2000];
     float two_points_distance;
     float latitude_degree_distance;
     // PONTO 2
@@ -246,7 +247,7 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
         middle_intervals[point] = pointsBetweenWaypoints(data[point], data[point+1], middle_points[point]);
     }
 
-    if(auto_pilot==0){
+    if(auto_pilot==0 || auto_pilot == 2){
 
         for(point = 0; point < number_waypoints-1; point++){
 
@@ -296,9 +297,10 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
 
             for(int i=0;i<=middle_intervals[point]-1;i++){
 
-                printf("SEM ERRO : LATITUDE : %.4f LONGITUDE : %.4f TIME : %.4f ALTITUDE : %.4f THETA : %.4f HEADING : %.4f\n",radiansToDegrees(middle_points[point][i].latitude), radiansToDegrees(middle_points[point][i].longitude), middle_points[point][i].time, middle_points[point][i].altitude, radiansToDegrees(middle_points[point][i].theta), radiansToDegrees(middle_points[point][i].heading));
-                printf("COM ERRO : LATITUDE : %.4f LONGITUDE : %.4f TIME : %.4f ALTITUDE : %.4f THETA : %.4f HEADING : %.4f\n",radiansToDegrees(pontos_com_erro[point][i].latitude), radiansToDegrees(pontos_com_erro[point][i].longitude), pontos_com_erro[point][i].time, pontos_com_erro[point][i].altitude, radiansToDegrees(pontos_com_erro[point][i].theta), radiansToDegrees(pontos_com_erro[point][i].heading));
-
+                //printf("SEM ERRO : LATITUDE : %.4f LONGITUDE : %.4f TIME : %.4f ALTITUDE : %.4f THETA : %.4f HEADING : %.4f\n",radiansToDegrees(middle_points[point][i].latitude), radiansToDegrees(middle_points[point][i].longitude), middle_points[point][i].time, middle_points[point][i].altitude, radiansToDegrees(middle_points[point][i].theta), radiansToDegrees(middle_points[point][i].heading));
+                //printf("COM ERRO : LATITUDE : %.4f LONGITUDE : %.4f TIME : %.4f ALTITUDE : %.4f THETA : %.4f HEADING : %.4f\n",radiansToDegrees(pontos_com_erro[point][i].latitude), radiansToDegrees(pontos_com_erro[point][i].longitude), pontos_com_erro[point][i].time, pontos_com_erro[point][i].altitude, radiansToDegrees(pontos_com_erro[point][i].theta), radiansToDegrees(pontos_com_erro[point][i].heading));
+                
+                printf("%f;%f\n", middle_points[point][i].time, middle_points[point][i].altitude);
 
 
             }
@@ -307,11 +309,9 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
         }
 
     }
-    else if(auto_pilot==1){
+    if(auto_pilot==1 || auto_pilot == 2){
         // PONTO 3 e 4
         // V(t+intervalo_tempo) = V(tempo) - 0.1 * (V(tempo) - Vref)
-
-        WAYPOINT pontos_com_controlador[number_waypoints][2000];
 
         float erro;
         float speed_corrigida, speed_antiga, new_speed;
@@ -330,9 +330,23 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
 
             for(i=0;i<=middle_intervals[point];i++){  
 
+            // HUGO::::
+            /*
+                Parece-me haver um erro aqui no cálculo da speed_corrigida, ou da new_speed. Eu suponho que o controlo esteja a ser bem feito, certo? Mas a cena é que eu não tenho
+                a certeza se depois a new_speed é a speed_corrigida só ou se leva acrescido aquele erro. É que assim tem ainda mais erro do que as leituras só com erro, pois as leituras
+                só com erro são sempre em relação à speed_antiga, que é constante, enquanto aqui as leituras com erro são sempre em relação a uma velocidade que oscila muito. Eu até tentei
+                meter a constante do controlador a 0 e dá um erro bem maior que na leitura com erro. Consegues ver isto por favor? Tens um ficheiro txt novo chamado altitude.txt para testares
+                middle points entre apenas 2 waypoints. Nota que reduzi o intervalo de distância entre waypoints, era so para ver o controlador a atuar mais rapidamente (1min, acho que o prof
+                disse um valor assim parecido). O output está lá em baixo onde estão uns prints para auto_pilot == 2.
+                # UPDATE
+                Meti uma constante de -0.5, nos primeiros pontos o erro no controlador é maior mas depois parece resultar bem. Terá alguma coisa que ver com o período da sinusoide? Acho que 
+                é capaz de estar bem assim.
 
+
+
+            */
                 if (i != 0){
-                    speed_corrigida = pontos_com_controlador[point][i - 1].speed - 2 * erro;
+                    speed_corrigida = pontos_com_controlador[point][i - 1].speed - 0.5 * erro;
                 }
                 else{
                     speed_corrigida = speed_antiga;
@@ -396,6 +410,17 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
 
 
         }
+    }
+
+    if (auto_pilot == 2){
+        for(point = 0; point < number_waypoints-1; point++){
+
+            for(int i=0;i<=middle_intervals[point]-1;i++){
+
+                printf("%.4f;%.4f;%.4f;%.4f;%.4f;%.4f;%.4f\n", middle_points[point][i].time, radiansToDegrees(middle_points[point][i].latitude), radiansToDegrees(middle_points[point][i].longitude), radiansToDegrees(pontos_com_erro[point][i].latitude), radiansToDegrees(pontos_com_erro[point][i].longitude), radiansToDegrees(pontos_com_controlador[point][i].latitude), radiansToDegrees(pontos_com_controlador[point][i].longitude));
+            }
+        }
+
     }
     
     return 0.0;

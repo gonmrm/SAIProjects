@@ -13,8 +13,8 @@
 #define FIELDS 4
 #define PI 3.14159265
 #define RADIUS 6371000
-#define INTERVAL_DISTANCE 20000
-#define ALPHA 0.007
+#define INTERVAL_DISTANCE 5000
+#define ALPHA 0.003
 
 typedef struct waypoint{
     float latitude;

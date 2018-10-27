@@ -417,7 +417,7 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
 
             for(int i=0;i<=middle_intervals[point]-1;i++){
 
-                printf("%.4f;%.4f;%.4f;%.4f;%.4f;%.4f;%.4f\n", middle_points[point][i].time, radiansToDegrees(middle_points[point][i].latitude), radiansToDegrees(middle_points[point][i].longitude), radiansToDegrees(pontos_com_erro[point][i].latitude), radiansToDegrees(pontos_com_erro[point][i].longitude), radiansToDegrees(pontos_com_controlador[point][i].latitude), radiansToDegrees(pontos_com_controlador[point][i].longitude));
+                printf("%.4f;%.4f;%.4f;%.4f\n", middle_points[point][i].time, radiansToDegrees(middle_points[point][i].heading), radiansToDegrees(pontos_com_erro[point][i].heading), radiansToDegrees(pontos_com_controlador[point][i].heading));
             }
         }
 

@@ -236,13 +236,13 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot){
     WAYPOINT pontos_com_controlador[number_waypoints][2000];
     float two_points_distance;
     float latitude_degree_distance;
-    float ui_prev;
-    float ui;
-    float up;
-    float error_prev;
+    float ui_prev=0;
+    float ui=0;
+    float up=0;
+    float error_prev=0;
     float K_I=0.1;
-    float K_P=0.6;
-    float K2 = K_P*K_I*10/2;
+    float K_P=0.8;
+    float K2 = K_P*K_I*15/2;
 
     // PONTO 2
 

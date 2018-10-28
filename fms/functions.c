@@ -265,13 +265,12 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
         two_points_distance     = twoPointsDistance(data[point], data[point+1]);
         data[point+1].time      = compute_waypoint_time(data[point],data[point+1],two_points_distance);
         middle_intervals[point] = pointsBetweenWaypoints(data[point], data[point+1], middle_points[point]);
-        printf("%d\n\n",middle_intervals[point]);
     }
 
     if (option == 1){
         for(point = 0; point < number_waypoints-1; point++){
             for(index = 0; index <= middle_intervals[point]; index++){
-                printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.0f\n", middle_points[point][index].time, middle_points[point][index].theta,middle_points[point][index].speed, middle_points[point][index].heading);
+                printf("Time: %.2f, Theta: %.5f, Vtas: %.2f, Heading: %3.4f\n", middle_points[point][index].time, middle_points[point][index].theta,middle_points[point][index].speed, middle_points[point][index].heading);
             }
         }
             /* RUI
@@ -297,25 +296,25 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
 
         for(point = 0; point < number_waypoints-1; point++){
 
-            for(index = 0; index <= middle_intervals[point]-1; index++){
+            for(index = 0; index <= middle_intervals[point]; index++){ // o index é middle_intervals[point]-1? assim falta um ponto
+                
+                if(index == 0 && point!=0){
+                    pontos_com_erro[point][index].latitude=pontos_com_erro[point-1][middle_intervals[point]].latitude;
+                    pontos_com_erro[point][index].longitude=pontos_com_erro[point-1][middle_intervals[point]].longitude;
+                }
 
-                var_time        = pontos_com_erro[point][index+1].time - pontos_com_erro[point][index].time;
+                var_time        =  pontos_com_erro[point][index+1].time - pontos_com_erro[point][index].time;
                 var_dist_north  = (pontos_com_erro[point][index].v_north * 1000 / 3600)*var_time; 
                 var_dist_east   = (pontos_com_erro[point][index].v_east * 1000 / 3600)*var_time;
 
                 latitude_degree_distance = 2 * PI * (RADIUS + pontos_com_erro[point][index].altitude) / 360.0;
-                
-                if(index == 0 && point!=0){
-                    pontos_com_erro[point][index].latitude=pontos_com_erro[point-1][middle_intervals[point]-1].latitude;
-                    pontos_com_erro[point][index].longitude=pontos_com_erro[point-1][middle_intervals[point]-1].longitude;
-                }
 
                 pontos_com_erro[point][index+1].latitude    = pontos_com_erro[point][index].latitude + degreesToRadians(var_dist_north/latitude_degree_distance);
                 pontos_com_erro[point][index+1].longitude   = pontos_com_erro[point][index].longitude + degreesToRadians(var_dist_east/( cos(pontos_com_erro[point][index].latitude) * latitude_degree_distance ));
 
                 pos_error = twoPointsDistance(middle_points[point][index], pontos_com_erro[point][index]);
                 //printf("Time: %f, Error: %f\n", pontos_com_erro[point][index].time, pos_error);
-                printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.1f, error: %f\n", pontos_com_erro[point][index].time, pontos_com_erro[point][index].theta, pontos_com_erro[point][index].speed, pontos_com_erro[point][index].heading, pos_error);
+                printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.4f, error: %f\n", pontos_com_erro[point][index].time, pontos_com_erro[point][index].theta, pontos_com_erro[point][index].speed, pontos_com_erro[point][index].heading, pos_error);
 
             }
 

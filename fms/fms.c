@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     char file_name[MAX_FILENAME_SIZE];
     WAYPOINT data[MAX_WAYPOINTS];
     float path_distance;
-    int number_waypoints;
+    int number_waypoints, option;
 
 
     
@@ -28,34 +28,31 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    number_waypoints = readDataFromFile(file_name, data);  // returns 0 in case of no waypoints
+    number_waypoints = readDataFromFile(file_name, data);  // returns 0 in case of no waypoints or invalid values
 
     if(number_waypoints == 0){
         printf("There was some problem: either a problem with the file or no waypoints were found.");
         return 0;
     }
 
-    // DEBUGGING
-    /*
-    for(int i = 0; i < number_waypoints; i++){
-        printf("%d:\n", i+1);
-        printf("%f , %f\n", data[i].latitude, data[i].longitude);
+    printf("\nWhich option would you want?\n0 - GMD\n1 - No error functions;\n2 - Position error due to speed measurement\n");
+    printf("3 - Position error with auto-pilot\n4 - Position error with auto-pilot, heading recalculation and dead-reackoning update\n: ");
+    scanf("%d", &option);
+
+    if(option < 0 || option > 4){  // option can only be 0, 1, 2, 3, 4
+        printf("Invalid option.\n");
+        return 0;
     }
-    */
-    ////////////
 
-    data[0].time=0;
+    printf("\n\n\n");
 
-    path_distance = calculatePathDistance(data, number_waypoints);    // returns final distance in nmi
-    calculatePositions(data,number_waypoints,2);
-
-    printf("GMD: %f nmi\n", path_distance);
-
+    if (option == 0){
+        path_distance = calculatePathDistance(data, number_waypoints, option);    // returns final distance in nmi
+        printf("GMD: %f nmi\n", path_distance);
+    } else
+        calculatePositions(data, number_waypoints, option);
 
 
-
-    
-    
     return 0;
 
 }

@@ -31,12 +31,13 @@ typedef struct waypoint{
 
 float degreesToRadians(float deg_angle);
 float radiansToDegrees(float rad_angle);
+int invalidWaypointValues(WAYPOINT *data, int number_waypoints);
 void getWaypointValues(char *line, WAYPOINT *waypoint);
 int readDataFromFile(char *file_name, WAYPOINT *data);
 float twoPointsDistance(WAYPOINT first_point, WAYPOINT second_point);
 int pointsBetweenWaypoints(WAYPOINT first_point, WAYPOINT second_point, WAYPOINT *middle_points);
-float calculatePathDistance(WAYPOINT *data, int number_waypoints);
-float calculatePositions(WAYPOINT *data, int number_waypoints, int auto_pilot);
+float calculatePathDistance(WAYPOINT *data, int number_waypoints, int option);
+float calculatePositions(WAYPOINT *data, int number_waypoints, int option);
 float calculateHeading(WAYPOINT first_point, WAYPOINT second_point);
 float compute_waypoint_time(WAYPOINT first_point, WAYPOINT second_point,float two_points_distance);
 

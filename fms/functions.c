@@ -65,6 +65,8 @@ void getWaypointValues(char *line, WAYPOINT *waypoint){
     waypoint->altitude    = atof(values[3]);
     waypoint->speed       = atof(values[4]);
 
+    printf("%f;%f\n", waypoint->latitude, waypoint->longitude);
+    
 }
 
 
@@ -235,7 +237,8 @@ float calculatePathDistance(WAYPOINT *data, int number_waypoints, int option){
     }
 
     // Passing total distance from m to NM
-    printf("Total distance in nautical miles: %.6f\n", total_distance / 1852.0);
+    total_distance = total_distance / 1852.0;
+
     return total_distance;
 }
 
@@ -254,23 +257,22 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
     float ui=0;
     float up=0;
     float error_prev=0;
-    float K_I=0.1;
-    float K_P=0.8;
-    float K2 = K_P*K_I*15/2;
     float pos_error;
 
     
-    for(point=0; point <number_waypoints-1;point++){
+    for(point=0; point < number_waypoints-1;point++){
 
         two_points_distance     = twoPointsDistance(data[point], data[point+1]);
         data[point+1].time      = compute_waypoint_time(data[point],data[point+1],two_points_distance);
         middle_intervals[point] = pointsBetweenWaypoints(data[point], data[point+1], middle_points[point]);
+        
     }
-
+    
     if (option == 1){
         for(point = 0; point < number_waypoints-1; point++){
             for(index = 0; index <= middle_intervals[point]; index++){
-                printf("Time: %.2f, Theta: %.5f, Vtas: %.2f, Heading: %3.4f\n", middle_points[point][index].time, middle_points[point][index].theta,middle_points[point][index].speed, middle_points[point][index].heading);
+                printf("Time: %.2f, Theta: %.5f, Vtas: %.2f, Heading: %3.4f\n", middle_points[point][index].time, middle_points[point][index].theta,middle_points[point][index].speed, radiansToDegrees(middle_points[point][index].heading));
+                //printf("%.4f;%.4f;%.4f\n", middle_points[point][index].time, middle_points[point][index].latitude, middle_points[point][index].longitude);
             }
         }
             /* RUI
@@ -296,11 +298,20 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
 
         for(point = 0; point < number_waypoints-1; point++){
 
-            for(index = 0; index <= middle_intervals[point]; index++){ // o index é middle_intervals[point]-1? assim falta um ponto
+            for(index = 0; index <= middle_intervals[point]-1; index++){ // o index é middle_intervals[point]-1? assim falta um ponto
                 
                 if(index == 0 && point!=0){
-                    pontos_com_erro[point][index].latitude=pontos_com_erro[point-1][middle_intervals[point]].latitude;
-                    pontos_com_erro[point][index].longitude=pontos_com_erro[point-1][middle_intervals[point]].longitude;
+
+                    var_time        =  pontos_com_erro[point][index].time - pontos_com_erro[point-1][middle_intervals[point-1]].time;
+                    var_dist_north  = (pontos_com_erro[point][index].v_north * 1000 / 3600)*var_time; 
+                    var_dist_east   = (pontos_com_erro[point][index].v_east * 1000 / 3600)*var_time;
+
+                    latitude_degree_distance = 2 * PI * (RADIUS + pontos_com_erro[point][index].altitude) / 360.0;
+
+                    pontos_com_erro[point][index].latitude=pontos_com_erro[point-1][middle_intervals[point-1]].latitude + degreesToRadians(var_dist_north/latitude_degree_distance);;
+                    pontos_com_erro[point][index].longitude=pontos_com_erro[point-1][middle_intervals[point-1]].longitude + degreesToRadians(var_dist_east/( cos(pontos_com_erro[point][index].latitude) * latitude_degree_distance ));;
+                    //printf("%d  %d\n", point, index);
+                    //printf("%f;%f\n\n", pontos_com_erro[point-1][index].latitude, pontos_com_erro[point-1][index].longitude);
                 }
 
                 var_time        =  pontos_com_erro[point][index+1].time - pontos_com_erro[point][index].time;
@@ -313,8 +324,12 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
                 pontos_com_erro[point][index+1].longitude   = pontos_com_erro[point][index].longitude + degreesToRadians(var_dist_east/( cos(pontos_com_erro[point][index].latitude) * latitude_degree_distance ));
 
                 pos_error = twoPointsDistance(middle_points[point][index], pontos_com_erro[point][index]);
-                //printf("Time: %f, Error: %f\n", pontos_com_erro[point][index].time, pos_error);
-                printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.4f, error: %f\n", pontos_com_erro[point][index].time, pontos_com_erro[point][index].theta, pontos_com_erro[point][index].speed, pontos_com_erro[point][index].heading, pos_error);
+                printf("Time: %f, Error: %f\n", pontos_com_erro[point][index].time, pos_error);
+                //printf("%.4f;%.4f;%.4f\n", pontos_com_erro[point][index].time, pontos_com_erro[point][index].latitude, pontos_com_erro[point][index].longitude);
+                //printf("point: %d, index: %d\n", point, index);
+                //printf("%f;%f\n", middle_points[point][index].latitude, middle_points[point][index].longitude);
+                //printf("%f;%f\n\n", pontos_com_erro[point][index].latitude, pontos_com_erro[point][index].longitude);
+                //printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.4f, error: %f\n", pontos_com_erro[point][index].time, pontos_com_erro[point][index].theta, pontos_com_erro[point][index].speed, pontos_com_erro[point][index].heading, pos_error);
 
             }
 
@@ -343,11 +358,11 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
                 pontos_com_controlador[point][index]=middle_points[point][index];
             }
 
-            for(index = 0; index <= middle_intervals[point]; index++){  
+            for(index = 0; index <= middle_intervals[point]-1; index++){  
 
                 if (index != 0 && point != 0){
                     up = K_P * (error);
-                    ui = ui_prev + K2 * (error + error_prev);
+                    ui = ui_prev + (K_P*K_I*15/2) * (error + error_prev);
                     corrected_speed = pontos_com_controlador[point][index - 1].speed -(ui+up) ;
                     ui_prev = ui;
                     error_prev = error;
@@ -372,17 +387,27 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
 
                 if(option==3){
                     if(index == 0 && point!=0){
-                        pontos_com_controlador[point][index].latitude=pontos_com_controlador[point-1][middle_intervals[point]-1].latitude;
-                        pontos_com_controlador[point][index].longitude=pontos_com_controlador[point-1][middle_intervals[point]-1].longitude;
-                    }
+
+                    var_time        =  pontos_com_controlador[point][index].time - pontos_com_controlador[point-1][middle_intervals[point-1]].time;
+                    var_dist_north  = (pontos_com_controlador[point][index].v_north * 1000 / 3600)*var_time; 
+                    var_dist_east   = (pontos_com_controlador[point][index].v_east * 1000 / 3600)*var_time;
+
+                    latitude_degree_distance = 2 * PI * (RADIUS + pontos_com_controlador[point][index].altitude) / 360.0;
+
+                    pontos_com_controlador[point][index].latitude=pontos_com_controlador[point-1][middle_intervals[point-1]].latitude + degreesToRadians(var_dist_north/latitude_degree_distance);;
+                    pontos_com_controlador[point][index].longitude=pontos_com_controlador[point-1][middle_intervals[point-1]].longitude + degreesToRadians(var_dist_east/( cos(pontos_com_erro[point][index].latitude) * latitude_degree_distance ));;
+                    //printf("%d  %d\n", point, index);
+                    //printf("%f;%f\n\n", pontos_com_controlador[point-1][index].latitude, pontos_com_controlador[point-1][index].longitude);
+                }
                 }
 
                 pontos_com_controlador[point][index+1].latitude  = pontos_com_controlador[point][index].latitude+degreesToRadians(var_dist_north/latitude_degree_distance);
                 pontos_com_controlador[point][index+1].longitude = pontos_com_controlador[point][index].longitude+degreesToRadians(var_dist_east/( cos(pontos_com_controlador[point][index].latitude) * latitude_degree_distance ));
 
                 pos_error = twoPointsDistance(middle_points[point][index], pontos_com_controlador[point][index]);
-                //printf("Time: %.2f, Error: %f\n", pontos_com_controlador[point][index].time, pos_error);
-                printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.1f, error: %f\n", pontos_com_controlador[point][index].time, pontos_com_controlador[point][index].theta, pontos_com_controlador[point][index].speed, pontos_com_controlador[point][index].heading, pos_error);
+                //printf("%.4f;%.4f;%.4f\n", pontos_com_controlador[point][index].time, pontos_com_controlador[point][index].latitude, pontos_com_controlador[point][index].longitude);
+                printf("Time: %.2f, Error: %f\n", pontos_com_controlador[point][index].time, pos_error);
+                //printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.1f, error: %f\n", pontos_com_controlador[point][index].time, pontos_com_controlador[point][index].theta, pontos_com_controlador[point][index].speed, pontos_com_controlador[point][index].heading, pos_error);
 
             }
             pontos_com_controlador[point][index].heading = pontos_com_controlador[point][index - 1].heading;

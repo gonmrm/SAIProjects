@@ -275,10 +275,6 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
                 //printf("%.4f;%.4f;%.4f\n", middle_points[point][index].time, middle_points[point][index].latitude, middle_points[point][index].longitude);
             }
         }
-            /* RUI
-            O heading tem valores estranhos, não me parecem corretos
-            */
-
     }
 
     if(option == 2){
@@ -310,8 +306,6 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
 
                     pontos_com_erro[point][index].latitude=pontos_com_erro[point-1][middle_intervals[point-1]].latitude + degreesToRadians(var_dist_north/latitude_degree_distance);;
                     pontos_com_erro[point][index].longitude=pontos_com_erro[point-1][middle_intervals[point-1]].longitude + degreesToRadians(var_dist_east/( cos(pontos_com_erro[point][index].latitude) * latitude_degree_distance ));;
-                    //printf("%d  %d\n", point, index);
-                    //printf("%f;%f\n\n", pontos_com_erro[point-1][index].latitude, pontos_com_erro[point-1][index].longitude);
                 }
 
                 var_time        =  pontos_com_erro[point][index+1].time - pontos_com_erro[point][index].time;
@@ -324,23 +318,12 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
                 pontos_com_erro[point][index+1].longitude   = pontos_com_erro[point][index].longitude + degreesToRadians(var_dist_east/( cos(pontos_com_erro[point][index].latitude) * latitude_degree_distance ));
 
                 pos_error = twoPointsDistance(middle_points[point][index], pontos_com_erro[point][index]);
-                //printf("Time: %f, Error: %f\n", pontos_com_erro[point][index].time, pos_error);
+                printf("Time: %f, Error: %f\n", pontos_com_erro[point][index].time, pos_error);
                 //printf("%.4f;%.4f;%.4f\n", pontos_com_erro[point][index].time, pontos_com_erro[point][index].latitude, pontos_com_erro[point][index].longitude);
-                //printf("point: %d, index: %d\n", point, index);
-                //printf("%f;%f\n", middle_points[point][index].latitude, middle_points[point][index].longitude);
-                //printf("%f;%f\n\n", pontos_com_erro[point][index].latitude, pontos_com_erro[point][index].longitude);
-                printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.4f, error: %f\n", pontos_com_erro[point][index].time, pontos_com_erro[point][index].theta, pontos_com_erro[point][index].speed, pontos_com_erro[point][index].heading, pos_error);
+                //printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.4f, error: %f\n", pontos_com_erro[point][index].time, pontos_com_erro[point][index].theta, pontos_com_erro[point][index].speed, pontos_com_erro[point][index].heading, pos_error);
 
             }
-
-
         }
-
-
-        /* RUI
-        Aqui na option == 2 tem de se imprimir "Time: %f  - Error: %f", sendo que Error é o erro de posição em distância absoluta. Acho que é isso que é suposto imprimir na opçao 1
-        */
-
     }
     if(option == 3 || option == 4){
 
@@ -352,7 +335,6 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
 
             old_speed = data[point].speed;
 
-            //error = 0;
             for(index = 0; index <= middle_intervals[point]; index++){  
 
                 pontos_com_controlador[point][index]=middle_points[point][index];
@@ -385,7 +367,7 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
                 if(option==4){
                     pontos_com_controlador[point][index].heading = calculateHeading(pontos_com_controlador[point][index], middle_points[point][index+1]);    
                 }
-                
+
                 pontos_com_controlador[point][index].v_north = pontos_com_controlador[point][index].speed * cos (pontos_com_controlador[point][index].theta)*cos(pontos_com_controlador[point][index].heading);
                 pontos_com_controlador[point][index].v_east  = pontos_com_controlador[point][index].speed * cos (pontos_com_controlador[point][index].theta)*sin(pontos_com_controlador[point][index].heading);
 
@@ -409,9 +391,7 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
     
                         pontos_com_controlador[point][index].latitude=pontos_com_controlador[point-1][middle_intervals[point-1]].latitude + degreesToRadians(var_dist_north/latitude_degree_distance);;
                         pontos_com_controlador[point][index].longitude=pontos_com_controlador[point-1][middle_intervals[point-1]].longitude + degreesToRadians(var_dist_east/( cos(pontos_com_erro[point][index].latitude) * latitude_degree_distance ));;
-                        //printf("%d  %d\n", point, index);
-                        //printf("%f;%f\n\n", pontos_com_controlador[point-1][index].latitude, pontos_com_controlador[point-1][index].longitude);
-                }
+                   }
                 }
 
                 pontos_com_controlador[point][index+1].latitude  = pontos_com_controlador[point][index].latitude+degreesToRadians(var_dist_north/latitude_degree_distance);
@@ -419,23 +399,14 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
 
                 pos_error = twoPointsDistance(middle_points[point][index], pontos_com_controlador[point][index]);
                 //printf("%.4f;%.4f;%.4f\n", pontos_com_controlador[point][index].time, pontos_com_controlador[point][index].latitude, pontos_com_controlador[point][index].longitude);
-                //printf("Time: %.2f, Error: %f\n", pontos_com_controlador[point][index].time, pos_error);
-                printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.1f, error: %f\n", pontos_com_controlador[point][index].time, pontos_com_controlador[point][index].theta, pontos_com_controlador[point][index].speed, pontos_com_controlador[point][index].heading, pos_error);
+                printf("Time: %.2f, Error: %f\n", pontos_com_controlador[point][index].time, pos_error);
+                //printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.1f, error: %f\n", pontos_com_controlador[point][index].time, pontos_com_controlador[point][index].theta, pontos_com_controlador[point][index].speed, pontos_com_controlador[point][index].heading, pos_error);
 
             }
             pontos_com_controlador[point][index].heading = pontos_com_controlador[point][index - 1].heading;
         }
-
-        /* RUI
-        Option 3, penso que é novamente Time e Error, só que com controlador e sem recalculo do Heading
-        */
     }
 
-    /* RUI
-    De alguma maneira tambem tem de haver aqui um print para a Option 4 (que é o que é mais parecido com os cálculos acima), que imprime Time e Error.
-    É isto basicamente penso. Boa sorte
-    */
-    
     return 0.0;
     
 }

@@ -16,7 +16,7 @@
 #define INTERVAL_DISTANCE 5000
 #define ALPHA 0.003
 #define K_I 0.1
-#define K_P 0.8
+#define K_P 0.5
 
 typedef struct waypoint{
     float latitude;

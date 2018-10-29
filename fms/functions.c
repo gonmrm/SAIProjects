@@ -324,12 +324,12 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
                 pontos_com_erro[point][index+1].longitude   = pontos_com_erro[point][index].longitude + degreesToRadians(var_dist_east/( cos(pontos_com_erro[point][index].latitude) * latitude_degree_distance ));
 
                 pos_error = twoPointsDistance(middle_points[point][index], pontos_com_erro[point][index]);
-                printf("Time: %f, Error: %f\n", pontos_com_erro[point][index].time, pos_error);
+                //printf("Time: %f, Error: %f\n", pontos_com_erro[point][index].time, pos_error);
                 //printf("%.4f;%.4f;%.4f\n", pontos_com_erro[point][index].time, pontos_com_erro[point][index].latitude, pontos_com_erro[point][index].longitude);
                 //printf("point: %d, index: %d\n", point, index);
                 //printf("%f;%f\n", middle_points[point][index].latitude, middle_points[point][index].longitude);
                 //printf("%f;%f\n\n", pontos_com_erro[point][index].latitude, pontos_com_erro[point][index].longitude);
-                //printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.4f, error: %f\n", pontos_com_erro[point][index].time, pontos_com_erro[point][index].theta, pontos_com_erro[point][index].speed, pontos_com_erro[point][index].heading, pos_error);
+                printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.4f, error: %f\n", pontos_com_erro[point][index].time, pontos_com_erro[point][index].theta, pontos_com_erro[point][index].speed, pontos_com_erro[point][index].heading, pos_error);
 
             }
 
@@ -352,7 +352,7 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
 
             old_speed = data[point].speed;
 
-            error = 0;
+            //error = 0;
             for(index = 0; index <= middle_intervals[point]; index++){  
 
                 pontos_com_controlador[point][index]=middle_points[point][index];
@@ -360,19 +360,32 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
 
             for(index = 0; index <= middle_intervals[point]-1; index++){  
 
-                if (index != 0 && point != 0){
-                    up = K_P * (error);
-                    ui = ui_prev + (K_P*K_I*15/2) * (error + error_prev);
-                    corrected_speed = pontos_com_controlador[point][index - 1].speed -(ui+up) ;
-                    ui_prev = ui;
-                    error_prev = error;
+                if (point != 0){
+                    if(index == 0){
+                        up = K_P * (error);
+                        ui = ui_prev + (K_P*K_I*15/2) * (error + error_prev);
+                        corrected_speed = pontos_com_controlador[point-1][middle_intervals[point-1]].speed -(ui+up) ;
+                        ui_prev = ui;
+                        error_prev = error; 
+                    }
+                    else{
+                        up = K_P * (error);
+                        ui = ui_prev + (K_P*K_I*15/2) * (error + error_prev);
+                        corrected_speed = pontos_com_controlador[point][index - 1].speed -(ui+up) ;
+                        ui_prev = ui;
+                        error_prev = error;
+                    }
                 }
                 else{
                     corrected_speed = old_speed;
                 }
 
                 pontos_com_controlador[point][index].speed   = corrected_speed * ( 1.0 + 0.01*sin( (2*PI*(middle_points[point][index].time) ) / (20*60) ) );
-                pontos_com_controlador[point][index].heading = calculateHeading(pontos_com_controlador[point][index], pontos_com_controlador[point][index+1]);
+
+                if(option==4){
+                    pontos_com_controlador[point][index].heading = calculateHeading(pontos_com_controlador[point][index], middle_points[point][index+1]);    
+                }
+                
                 pontos_com_controlador[point][index].v_north = pontos_com_controlador[point][index].speed * cos (pontos_com_controlador[point][index].theta)*cos(pontos_com_controlador[point][index].heading);
                 pontos_com_controlador[point][index].v_east  = pontos_com_controlador[point][index].speed * cos (pontos_com_controlador[point][index].theta)*sin(pontos_com_controlador[point][index].heading);
 
@@ -387,17 +400,17 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
 
                 if(option==3){
                     if(index == 0 && point!=0){
+                        
+                        var_time        =  pontos_com_controlador[point][index].time - pontos_com_controlador[point-1][middle_intervals[point-1]].time;
+                        var_dist_north  = (pontos_com_controlador[point][index].v_north * 1000 / 3600)*var_time; 
+                        var_dist_east   = (pontos_com_controlador[point][index].v_east * 1000 / 3600)*var_time;
 
-                    var_time        =  pontos_com_controlador[point][index].time - pontos_com_controlador[point-1][middle_intervals[point-1]].time;
-                    var_dist_north  = (pontos_com_controlador[point][index].v_north * 1000 / 3600)*var_time; 
-                    var_dist_east   = (pontos_com_controlador[point][index].v_east * 1000 / 3600)*var_time;
-
-                    latitude_degree_distance = 2 * PI * (RADIUS + pontos_com_controlador[point][index].altitude) / 360.0;
-
-                    pontos_com_controlador[point][index].latitude=pontos_com_controlador[point-1][middle_intervals[point-1]].latitude + degreesToRadians(var_dist_north/latitude_degree_distance);;
-                    pontos_com_controlador[point][index].longitude=pontos_com_controlador[point-1][middle_intervals[point-1]].longitude + degreesToRadians(var_dist_east/( cos(pontos_com_erro[point][index].latitude) * latitude_degree_distance ));;
-                    //printf("%d  %d\n", point, index);
-                    //printf("%f;%f\n\n", pontos_com_controlador[point-1][index].latitude, pontos_com_controlador[point-1][index].longitude);
+                        latitude_degree_distance = 2 * PI * (RADIUS + pontos_com_controlador[point][index].altitude) / 360.0;
+    
+                        pontos_com_controlador[point][index].latitude=pontos_com_controlador[point-1][middle_intervals[point-1]].latitude + degreesToRadians(var_dist_north/latitude_degree_distance);;
+                        pontos_com_controlador[point][index].longitude=pontos_com_controlador[point-1][middle_intervals[point-1]].longitude + degreesToRadians(var_dist_east/( cos(pontos_com_erro[point][index].latitude) * latitude_degree_distance ));;
+                        //printf("%d  %d\n", point, index);
+                        //printf("%f;%f\n\n", pontos_com_controlador[point-1][index].latitude, pontos_com_controlador[point-1][index].longitude);
                 }
                 }
 
@@ -406,8 +419,8 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
 
                 pos_error = twoPointsDistance(middle_points[point][index], pontos_com_controlador[point][index]);
                 //printf("%.4f;%.4f;%.4f\n", pontos_com_controlador[point][index].time, pontos_com_controlador[point][index].latitude, pontos_com_controlador[point][index].longitude);
-                printf("Time: %.2f, Error: %f\n", pontos_com_controlador[point][index].time, pos_error);
-                //printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.1f, error: %f\n", pontos_com_controlador[point][index].time, pontos_com_controlador[point][index].theta, pontos_com_controlador[point][index].speed, pontos_com_controlador[point][index].heading, pos_error);
+                //printf("Time: %.2f, Error: %f\n", pontos_com_controlador[point][index].time, pos_error);
+                printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.1f, error: %f\n", pontos_com_controlador[point][index].time, pontos_com_controlador[point][index].theta, pontos_com_controlador[point][index].speed, pontos_com_controlador[point][index].heading, pos_error);
 
             }
             pontos_com_controlador[point][index].heading = pontos_com_controlador[point][index - 1].heading;

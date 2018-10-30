@@ -64,8 +64,6 @@ void getWaypointValues(char *line, WAYPOINT *waypoint){
     waypoint->longitude   = degreesToRadians(atof(values[2]));
     waypoint->altitude    = atof(values[3]);
     waypoint->speed       = atof(values[4]);
-
-    printf("%f;%f\n", waypoint->latitude, waypoint->longitude);
     
 }
 
@@ -272,7 +270,6 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
         for(point = 0; point < number_waypoints-1; point++){
             for(index = 0; index <= middle_intervals[point]; index++){
                 printf("Time: %.2f, Theta: %.5f, Vtas: %.2f, Heading: %3.4f\n", middle_points[point][index].time, middle_points[point][index].theta,middle_points[point][index].speed, radiansToDegrees(middle_points[point][index].heading));
-                //printf("%.4f;%.4f;%.4f\n", middle_points[point][index].time, middle_points[point][index].latitude, middle_points[point][index].longitude);
             }
         }
     }
@@ -324,12 +321,10 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
                 pontos_com_erro[point][index+1].longitude   = pontos_com_erro[point][index].longitude + degreesToRadians(var_dist_east/( cos(pontos_com_erro[point][index].latitude) * latitude_degree_distance ));
 
                 pos_error = twoPointsDistance(middle_points[point][index], pontos_com_erro[point][index]);
-                //printf("Time: %f, Error: %f\n", pontos_com_erro[point][index].time, pos_error);
-                printf("%.4f;%.4f;%.4f\n", pontos_com_erro[point][index].time, pontos_com_erro[point][index].latitude, pontos_com_erro[point][index].longitude);
-                //printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.4f, error: %f\n", pontos_com_erro[point][index].time, pontos_com_erro[point][index].theta, pontos_com_erro[point][index].speed, pontos_com_erro[point][index].heading, pos_error);
+                printf("Time: %f, Error: %f\n", pontos_com_erro[point][index].time, pos_error);
+
                 if(index == middle_intervals[point]-1){
-                    //printf("Time: %f, Error: %f\n", pontos_com_erro[point][index+1].time, pos_error);
-                    printf("%.4f;%.4f;%.4f\n", pontos_com_erro[point][index+1].time, pontos_com_erro[point][index+1].latitude, pontos_com_erro[point][index+1].longitude);
+                    printf("Time: %f, Error: %f\n", pontos_com_erro[point][index+1].time, pos_error);
                 }
             }
         }
@@ -407,13 +402,11 @@ float calculatePositions(WAYPOINT *data, int number_waypoints, int option){
                 pontos_com_controlador[point][index+1].longitude = pontos_com_controlador[point][index].longitude+degreesToRadians(var_dist_east/( cos(pontos_com_controlador[point][index].latitude) * latitude_degree_distance ));
 
                 pos_error = twoPointsDistance(middle_points[point][index], pontos_com_controlador[point][index]);
-                printf("%.4f;%.4f;%.4f\n", pontos_com_controlador[point][index].time, pontos_com_controlador[point][index].latitude, pontos_com_controlador[point][index].longitude);
-                //printf("Time: %.2f, Error: %f\n", pontos_com_controlador[point][index].time, pos_error);
-                //printf("Time: %.2f, Theta: %.2f, Vtas: %.2f, Heading: %3.1f, error: %f\n", pontos_com_controlador[point][index].time, pontos_com_controlador[point][index].theta, pontos_com_controlador[point][index].speed, pontos_com_controlador[point][index].heading, pos_error);
+
+                printf("Time: %.2f, Error: %f\n", pontos_com_controlador[point][index].time, pos_error);
                 
                 if(index == middle_intervals[point]-1){
-                    printf("%.4f;%.4f;%.4f\n", pontos_com_controlador[point][index+1].time, pontos_com_controlador[point][index+1].latitude, pontos_com_controlador[point][index+1].longitude);
-                    //printf("Time: %.2f, Error: %f\n", pontos_com_controlador[point][index+1].time, pos_error);
+                    printf("Time: %.2f, Error: %f\n", pontos_com_controlador[point][index+1].time, pos_error);
                 }
             }
             pontos_com_controlador[point][index].heading = pontos_com_controlador[point][index - 1].heading;
